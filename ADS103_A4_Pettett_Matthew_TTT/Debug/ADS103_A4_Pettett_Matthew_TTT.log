@@ -1,0 +1,6 @@
+﻿  Main.cpp
+D:\Torrens work Folder\Trimester 2\ADS\Task 4 TTT\ADS103_A4_Pettett_Matthew_TTT\Main.cpp(31,13): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+  TTT.cpp
+D:\Torrens work Folder\Trimester 2\ADS\Task 4 TTT\ADS103_A4_Pettett_Matthew_TTT\TTT.cpp(195,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+  Generating Code...
+  ADS103_A4_Pettett_Matthew_TTT.vcxproj -> D:\Torrens work Folder\Trimester 2\ADS\Task 4 TTT\ADS103_A4_Pettett_Matthew_TTT\Debug\ADS103_A4_Pettett_Matthew_TTT.exe
