@@ -28,11 +28,9 @@ public:
 	// computer marker to complete the row
 	void COM_winLossCheck(char TTT_markerLocation[10], int playerTurn, bool& gameIsRunning);
 
-	//checks if a move will grant com a win
-	void offensiveMoveCheck(char TTT_markerLocation[10], int playerTurn, bool& gameIsRunning, bool& hasTakenTurn);
-	//checks if a move will prevent opponent from winning 
-	void defensiveMoveCheck(char TTT_markerLocation[10], int playerTurn, bool& gameIsRunning, bool& hasTakenTurn);
-
+	// checks if a move will grant com a win
+	// & checks if a move will prevent opponent from winning 
+	void COM_turn(char TTT_markerLocation[10], int playerTurn, bool& gameIsRunning, bool& hasTakenTurn);
 
 	// Checks the board for if it matches with win condition
 	void checkWinCon(char TTT_markerLocation[10], bool& gameIsRunning, bool& endedAsDraw);

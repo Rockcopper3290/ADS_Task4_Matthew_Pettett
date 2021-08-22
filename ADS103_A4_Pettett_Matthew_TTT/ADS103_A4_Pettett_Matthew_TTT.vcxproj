@@ -24,6 +24,7 @@
     <ProjectGuid>{3a88f687-2d7a-4af3-8178-7c3c8464e91c}</ProjectGuid>
     <RootNamespace>ADS103A4PettettMatthewTTT</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>ADS103_A4_Pettett_Matthew_TTT</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -139,7 +140,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Source-Matthew_Pettett.cpp" />
     <ClCompile Include="TTT.cpp" />
   </ItemGroup>
   <ItemGroup>

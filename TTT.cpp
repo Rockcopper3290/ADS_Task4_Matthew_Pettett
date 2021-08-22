@@ -116,10 +116,10 @@ void TTT::requestValidInput(char TTT_markerLocation[10], int playerTurn, int &pl
 void TTT::alternatePlayerTurn(int &playerTurn)
 {
     if (playerTurn == 1) {
-        playerTurn++;
+        playerTurn = 2;
     }
     else {
-        playerTurn--;
+        playerTurn = 1;
     }
 }
 
@@ -170,6 +170,24 @@ void TTT::PvC_Gamemode(char TTT_markerLocation[10], int playerTurn, bool& gameIs
 
 void TTT::CvC_Gamemode(char TTT_markerLocation[10], int playerTurn, bool& gameIsRunning, bool isGameInProgress, bool& endedAsDraw)
 {
+    do
+    {
+        displayScreen(TTT_markerLocation, playerTurn);
+
+        // playerTurn 1 or 'X' is always the humans
+        
+        COM_winLossCheck(TTT_markerLocation, playerTurn, gameIsRunning);
+
+
+        checkWinCon(TTT_markerLocation, gameIsRunning, endedAsDraw);
+
+        if (gameIsRunning) {
+            alternatePlayerTurn(playerTurn);
+        }
+    } while (gameIsRunning);
+
+    anounceWinner(TTT_markerLocation, gameIsRunning, playerTurn, endedAsDraw);
+    resetBoard(TTT_markerLocation);
 }
 
 /*
@@ -186,294 +204,184 @@ void TTT::COM_winLossCheck(char TTT_markerLocation[10], int playerTurn, bool& ga
 
     //will check to see if the com has taken its turn
     bool hasTakenTurn = false;
-    if (!hasTakenTurn)
-        offensiveMoveCheck(TTT_markerLocation, playerTurn, gameIsRunning, hasTakenTurn);
 
+    // checks to see if the random placement was a valid move
+    bool validMove = false;
+
+    COM_turn(TTT_markerLocation, playerTurn, gameIsRunning, hasTakenTurn);
+
+    // if no moves were made make a random move
     if (!hasTakenTurn)
-        defensiveMoveCheck(TTT_markerLocation, playerTurn, gameIsRunning, hasTakenTurn);
+    {
     int movePos;
     srand(time(0));
 
-    // if no moves were made randomly make a move
-    if (!hasTakenTurn)
-    {
-        
-        // will keep making random moves until a valid spot is picked
         do
         {
+
             // Random Number Gen (1 - 9)
             movePos = 1 + (rand() % 9);
-            
             if (TTT_markerLocation[movePos] == originalBoardLayout[movePos])
             {
+                validMove = true;
                 TTT_markerLocation[movePos] = turnSymbol[playerTurn];
-                hasTakenTurn = true;
             }
-
-        } while (!hasTakenTurn);
-        
+        } while (!validMove);
     }
-
 
 }
 
-void TTT::offensiveMoveCheck(char TTT_markerLocation[10], int playerTurn, bool& gameIsRunning, bool& hasTakenTurn)
+void TTT::COM_turn(char TTT_markerLocation[10], int playerTurn, bool& gameIsRunning, bool& hasTakenTurn)
 {
     // the Turn symbols are X & O (for p1 and p1) 
     // element 0 ('n') is a null value that is used to make reading and writing the code
     // a bit easier.
     char turnSymbol[3] = { 'n', 'X', 'O' };
+    char originalBoardLayout[10] = { 'N', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 
     // layout for if statements:
     // 1: connected edges/points
     // 2: connected edges/points
     // 3: opposing edges/points
 
-    // Top row ( 1 2 3 )
-    if (TTT_markerLocation[1] == TTT_markerLocation[2] && TTT_markerLocation[3] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[3] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[3] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[2] == TTT_markerLocation[3] && TTT_markerLocation[1] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[1] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[1] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[1] == TTT_markerLocation[3] && TTT_markerLocation[2] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[3] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[2] = turnSymbol[playerTurn];
-    }
+    int currentMarker;
+        currentMarker = playerTurn;
 
-    // Middle row ( 4 5 6 )
-    else if (TTT_markerLocation[4] == TTT_markerLocation[5] && TTT_markerLocation[6] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[4] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[6] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[5] == TTT_markerLocation[6] && TTT_markerLocation[4] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[5] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[4] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[4] == TTT_markerLocation[6] && TTT_markerLocation[5] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[3] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[5] = turnSymbol[playerTurn];
-    }
-
-    // Bottom row ( 7 8 9 )
-    else if (TTT_markerLocation[7] == TTT_markerLocation[8] && TTT_markerLocation[9] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[7] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[9] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[8] == TTT_markerLocation[9] && TTT_markerLocation[7] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[8] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[7] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[7] == TTT_markerLocation[9] && TTT_markerLocation[8] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[9] == turnSymbol[playerTurn]){
-        hasTakenTurn = true;
-        TTT_markerLocation[8] = turnSymbol[playerTurn];
-    }
-
-    // Left row ( 1 4 7 )
-    else if (TTT_markerLocation[1] == TTT_markerLocation[4] && TTT_markerLocation[7] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[1] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[7] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[4] == TTT_markerLocation[7] && TTT_markerLocation[1] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[4] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[1] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[1] == TTT_markerLocation[7] && TTT_markerLocation[4] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[7] == turnSymbol[playerTurn]){
-        hasTakenTurn = true;
-        TTT_markerLocation[4] = turnSymbol[playerTurn];
-    }
-
-    // Center row ( 2 5 8 )
-    else if (TTT_markerLocation[2] == TTT_markerLocation[5] && TTT_markerLocation[8] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[2] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[8] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[5] == TTT_markerLocation[8] && TTT_markerLocation[2] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[5] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[2] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[2] == TTT_markerLocation[8] && TTT_markerLocation[5] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[8] == turnSymbol[playerTurn]){
-        hasTakenTurn = true;
-        TTT_markerLocation[5] = turnSymbol[playerTurn];
-    }
-
-    // Right row ( 3 6 9 )
-    else if (TTT_markerLocation[3] == TTT_markerLocation[6] && TTT_markerLocation[9] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[3] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[9] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[6] == TTT_markerLocation[9] && TTT_markerLocation[3] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[6] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[3] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[3] == TTT_markerLocation[9] && TTT_markerLocation[6] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[9] == turnSymbol[playerTurn]){
-        hasTakenTurn = true;
-        TTT_markerLocation[6] = turnSymbol[playerTurn];
-    }
-
-    // Top Left - Bottom Right diaginal ( 1 5 9 )
-    else if (TTT_markerLocation[1] == TTT_markerLocation[5] && TTT_markerLocation[9] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[1] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[9] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[5] == TTT_markerLocation[9] && TTT_markerLocation[1] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[5] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[1] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[1] == TTT_markerLocation[9] && TTT_markerLocation[5] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[9] == turnSymbol[playerTurn]){
-        hasTakenTurn = true;
-        TTT_markerLocation[5] = turnSymbol[playerTurn];
-    }
-
-    // Top Right - Bottom Left diaginal ( 3 5 7 )
-    else if (TTT_markerLocation[3] == TTT_markerLocation[5] && TTT_markerLocation[7] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[3] == turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[7] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[5] == TTT_markerLocation[7] && TTT_markerLocation[3] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[5] == turnSymbol[playerTurn]) {
-        TTT_markerLocation[3] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[3] == TTT_markerLocation[7] && TTT_markerLocation[5] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[7] == turnSymbol[playerTurn]){
-        hasTakenTurn = true;
-        TTT_markerLocation[5] = turnSymbol[playerTurn];
-    }
-    else
+    int loopCount = 0;
+    do
     {
-        //because no turn was made "hasTakenTurn will remain false"
-        hasTakenTurn = false;
-    }
 
-}
+        // Top row ( 1 2 3 )
+        if (TTT_markerLocation[1] == turnSymbol[currentMarker] && TTT_markerLocation[1] == TTT_markerLocation[2] && TTT_markerLocation[3] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[3] == originalBoardLayout[3]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[3] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[2] == turnSymbol[currentMarker] && TTT_markerLocation[2] == TTT_markerLocation[3] && TTT_markerLocation[1] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[1] == originalBoardLayout[1]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[1] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[1] == turnSymbol[currentMarker] && TTT_markerLocation[1] == TTT_markerLocation[3] && TTT_markerLocation[2] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[2] == originalBoardLayout[2]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[2] = turnSymbol[playerTurn];
+        }
+        // Middle row ( 4 5 6 )
+        else if (TTT_markerLocation[4] == turnSymbol[currentMarker] && TTT_markerLocation[4] == TTT_markerLocation[5] && TTT_markerLocation[6] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[6] == originalBoardLayout[6]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[6] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[5] == turnSymbol[currentMarker] && TTT_markerLocation[5] == TTT_markerLocation[6] && TTT_markerLocation[4] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[4] == originalBoardLayout[4]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[4] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[4] == turnSymbol[currentMarker] && TTT_markerLocation[4] == TTT_markerLocation[6] && TTT_markerLocation[5] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[5] == originalBoardLayout[5]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[5] = turnSymbol[playerTurn];
+        }
 
-void TTT::defensiveMoveCheck(char TTT_markerLocation[10], int playerTurn, bool& gameIsRunning, bool& hasTakenTurn)
-{
-    // the Turn symbols are X & O (for p1 and p1) 
-    // element 0 ('n') is a null value that is used to make reading and writing the code
-    // a bit easier.
-    char turnSymbol[3] = { 'n', 'X', 'O' };
+        // Bottom row ( 7 8 9 )
+        else if (TTT_markerLocation[7] == turnSymbol[currentMarker] && TTT_markerLocation[7] == TTT_markerLocation[8] && TTT_markerLocation[9] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[9] == originalBoardLayout[9]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[9] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[8] == turnSymbol[currentMarker] && TTT_markerLocation[8] == TTT_markerLocation[9] && TTT_markerLocation[7] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[7] == originalBoardLayout[7]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[7] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[7] == turnSymbol[currentMarker] && TTT_markerLocation[7] == TTT_markerLocation[9] && TTT_markerLocation[8] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[8] == originalBoardLayout[8]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[8] = turnSymbol[playerTurn];
+        }
 
-    // layout for if statements:
-    // 1: connected edges/points
-    // 2: connected edges/points
-    // 3: opposing edges/points
+        // Left row ( 1 4 7 )
+        else if (TTT_markerLocation[1] == turnSymbol[currentMarker] && TTT_markerLocation[1] == TTT_markerLocation[4] && TTT_markerLocation[7] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[7] == originalBoardLayout[7]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[7] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[4] == turnSymbol[currentMarker] && TTT_markerLocation[4] == TTT_markerLocation[7] && TTT_markerLocation[1] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[1] == originalBoardLayout[1]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[1] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[1] == turnSymbol[currentMarker] && TTT_markerLocation[1] == TTT_markerLocation[7] && TTT_markerLocation[4] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[4] == originalBoardLayout[4]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[4] = turnSymbol[playerTurn];
+        }
 
-    // Top row ( 1 2 3 )
-    if (TTT_markerLocation[1] == TTT_markerLocation[2] && TTT_markerLocation[3] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[1] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[3] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[2] == TTT_markerLocation[3] && TTT_markerLocation[1] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[2] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[1] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[1] == TTT_markerLocation[3] && TTT_markerLocation[2] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[3] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[2] = turnSymbol[playerTurn];
-    }
+        // Center row ( 2 5 8 )
+        else if (TTT_markerLocation[2] == turnSymbol[currentMarker] && TTT_markerLocation[2] == TTT_markerLocation[5] && TTT_markerLocation[8] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[8] == originalBoardLayout[8]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[8] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[5] == turnSymbol[currentMarker] && TTT_markerLocation[5] == TTT_markerLocation[8] && TTT_markerLocation[2] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[2] == originalBoardLayout[2]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[2] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[2] == turnSymbol[currentMarker] && TTT_markerLocation[2] == TTT_markerLocation[8] && TTT_markerLocation[5] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[5] == originalBoardLayout[5]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[5] = turnSymbol[playerTurn];
+        }
 
-    // Middle row ( 4 5 6 )
-    else if (TTT_markerLocation[4] == TTT_markerLocation[5] && TTT_markerLocation[6] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[4] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[6] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[5] == TTT_markerLocation[6] && TTT_markerLocation[4] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[5] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[4] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[4] == TTT_markerLocation[6] && TTT_markerLocation[5] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[3] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[5] = turnSymbol[playerTurn];
-    }
+        // Right row ( 3 6 9 )
+        else if (TTT_markerLocation[3] == turnSymbol[currentMarker] && TTT_markerLocation[3] == TTT_markerLocation[6] && TTT_markerLocation[9] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[9] == originalBoardLayout[9]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[9] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[6] == turnSymbol[currentMarker] && TTT_markerLocation[6] == TTT_markerLocation[9] && TTT_markerLocation[3] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[3] == originalBoardLayout[3]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[3] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[3] == turnSymbol[currentMarker] && TTT_markerLocation[3] == TTT_markerLocation[9] && TTT_markerLocation[6] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[6] == originalBoardLayout[6]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[6] = turnSymbol[playerTurn];
+        }
 
-    // Bottom row ( 7 8 9 )
-    else if (TTT_markerLocation[7] == TTT_markerLocation[8] && TTT_markerLocation[9] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[7] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[9] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[8] == TTT_markerLocation[9] && TTT_markerLocation[7] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[8] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[7] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[7] == TTT_markerLocation[9] && TTT_markerLocation[8] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[9] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[8] = turnSymbol[playerTurn];
-    }
+        // Top Left - Bottom Right diaginal ( 1 5 9 )
+        else if (TTT_markerLocation[1] == turnSymbol[currentMarker] && TTT_markerLocation[1] == TTT_markerLocation[5] && TTT_markerLocation[9] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[9] == originalBoardLayout[9]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[9] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[5] == turnSymbol[currentMarker] && TTT_markerLocation[5] == TTT_markerLocation[9] && TTT_markerLocation[1] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[1] == originalBoardLayout[1]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[1] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[1] == turnSymbol[currentMarker] && TTT_markerLocation[1] == TTT_markerLocation[9] && TTT_markerLocation[5] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[5] == originalBoardLayout[5]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[5] = turnSymbol[playerTurn];
+        }
 
-    // Left row ( 1 4 7 )
-    else if (TTT_markerLocation[1] == TTT_markerLocation[4] && TTT_markerLocation[7] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[1] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[7] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[4] == TTT_markerLocation[7] && TTT_markerLocation[1] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[4] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[1] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[1] == TTT_markerLocation[7] && TTT_markerLocation[4] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[7] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[4] = turnSymbol[playerTurn];
-    }
+        // Top Right - Bottom Left diaginal ( 3 5 7 )
+        else if (TTT_markerLocation[3] == turnSymbol[currentMarker] && TTT_markerLocation[3] == TTT_markerLocation[5] && TTT_markerLocation[7] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[7] == originalBoardLayout[7]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[7] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[5] == turnSymbol[currentMarker] && TTT_markerLocation[5] == TTT_markerLocation[7] && TTT_markerLocation[3] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[3] == originalBoardLayout[3]) {
+            TTT_markerLocation[3] = turnSymbol[playerTurn];
+        }
+        else if (TTT_markerLocation[3] == turnSymbol[currentMarker] && TTT_markerLocation[3] == TTT_markerLocation[7] && TTT_markerLocation[5] != (turnSymbol[1] && turnSymbol[2]) && TTT_markerLocation[5] == originalBoardLayout[5]) {
+            hasTakenTurn = true;
+            TTT_markerLocation[5] = turnSymbol[playerTurn];
+        }
 
-    // Center row ( 2 5 8 )
-    else if (TTT_markerLocation[2] == TTT_markerLocation[5] && TTT_markerLocation[8] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[2] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[8] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[5] == TTT_markerLocation[8] && TTT_markerLocation[2] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[5] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[2] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[2] == TTT_markerLocation[8] && TTT_markerLocation[5] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[8] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[5] = turnSymbol[playerTurn];
-    }
 
-    // Right row ( 3 6 9 )
-    else if (TTT_markerLocation[3] == TTT_markerLocation[6] && TTT_markerLocation[9] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[3] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[9] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[6] == TTT_markerLocation[9] && TTT_markerLocation[3] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[6] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[3] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[3] == TTT_markerLocation[9] && TTT_markerLocation[6] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[9] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[6] = turnSymbol[playerTurn];
-    }
+        if (loopCount == 0)
+        {
 
-    // Top Left - Bottom Right diaginal ( 1 5 9 )
-    else if (TTT_markerLocation[1] == TTT_markerLocation[5] && TTT_markerLocation[9] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[1] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[9] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[5] == TTT_markerLocation[9] && TTT_markerLocation[1] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[5] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[1] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[1] == TTT_markerLocation[9] && TTT_markerLocation[5] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[9] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[5] = turnSymbol[playerTurn];
-    }
 
-    // Top Right - Bottom Left diaginal ( 3 5 7 )
-    else if (TTT_markerLocation[3] == TTT_markerLocation[5] && TTT_markerLocation[7] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[3] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[7] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[5] == TTT_markerLocation[7] && TTT_markerLocation[3] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[5] != turnSymbol[playerTurn]) {
-        TTT_markerLocation[3] = turnSymbol[playerTurn];
-    }
-    else if (TTT_markerLocation[3] == TTT_markerLocation[7] && TTT_markerLocation[5] != (turnSymbol[1] || turnSymbol[2]) && TTT_markerLocation[7] != turnSymbol[playerTurn]) {
-        hasTakenTurn = true;
-        TTT_markerLocation[5] = turnSymbol[playerTurn];
-    }
-    else
-    {
-        //because no turn was made "hasTakenTurn will remain false"
-        hasTakenTurn = false;
-    }
+            if (playerTurn == 1)
+            {
+                currentMarker = 2;
+            }
+            else
+            {
+                currentMarker = 1;
+            }
+        }
+        loopCount++;
+
+    } while (!hasTakenTurn && loopCount != 2);
+    
+
+    
+
 }
 
 void TTT::checkWinCon(char TTT_markerLocation[10], bool& gameIsRunning, bool& endedAsDraw)
